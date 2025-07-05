@@ -60,7 +60,10 @@ export class ArchitectureStack extends cdk.Stack {
     const api = new apigateway.RestApi(this, "UsersApi", {
       restApiName: "Users Service",
       defaultCorsPreflightOptions: {
-        allowOrigins: ["http://localhost:3000"],
+        allowOrigins: [
+          "https://distinction-dev-task.vercel.app",
+          "http://localhost:3000",
+        ],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowHeaders: ["*"],
       },

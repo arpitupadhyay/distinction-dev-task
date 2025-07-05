@@ -6,6 +6,7 @@ const db = new DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const origin = event.headers.origin || "";
   const id = event.pathParameters?.id;
 
   if (!id) {
@@ -20,11 +21,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       })
       .promise();
 
-    return createResponse(200, { message: "User deleted" });
+    return createResponse(200, { message: "User deleted" }, origin);
   } catch (err) {
-    return createResponse(500, {
-      message: "Failed to delete user",
-      error: (err as any)?.message,
-    });
+    return createResponse(
+      500,
+      {
+        message: "Failed to delete user",
+        error: (err as any)?.message,
+      },
+      origin
+    );
   }
 };

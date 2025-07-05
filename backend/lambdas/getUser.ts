@@ -6,10 +6,11 @@ const db = new DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const origin = event.headers.origin || "";
   const id = event.pathParameters?.id;
 
   if (!id) {
-    return createResponse(400, { message: "Missing user ID in path" });
+    return createResponse(400, { message: "Missing user ID in path" }, origin);
   }
 
   try {
@@ -21,14 +22,18 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       .promise();
 
     if (!result.Item) {
-      return createResponse(404, { message: "User not found" });
+      return createResponse(404, { message: "User not found" }, origin);
     }
 
-    return createResponse(200, result.Item);
+    return createResponse(200, result.Item, origin);
   } catch (err) {
-    return createResponse(500, {
-      message: "Failed to get user",
-      error: (err as any)?.message,
-    });
+    return createResponse(
+      500,
+      {
+        message: "Failed to get user",
+        error: (err as any)?.message,
+      },
+      origin
+    );
   }
 };

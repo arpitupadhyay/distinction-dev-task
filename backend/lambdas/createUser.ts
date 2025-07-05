@@ -7,6 +7,7 @@ const db = new DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const origin = event.headers.origin || "";
   try {
     const data = JSON.parse(event.body || "{}");
 
@@ -22,11 +23,19 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       })
       .promise();
 
-    return createResponse(201, { message: "User created", id: user.id });
+    return createResponse(
+      201,
+      { message: "User created", id: user.id },
+      origin
+    );
   } catch (err) {
-    return createResponse(500, {
-      message: "Failed to create user",
-      error: (err as any)?.message,
-    });
+    return createResponse(
+      500,
+      {
+        message: "Failed to create user",
+        error: (err as any)?.message,
+      },
+      origin
+    );
   }
 };

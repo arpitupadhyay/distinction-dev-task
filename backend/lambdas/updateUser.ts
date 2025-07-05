@@ -6,11 +6,12 @@ const db = new DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
+  const origin = event.headers.origin || "";
   const id = event.pathParameters?.id;
   const data = JSON.parse(event.body || "{}");
 
   if (!id || !data.name || !data.email || !data.city || !data.country) {
-    return createResponse(400, { message: "Missing required fields" });
+    return createResponse(400, { message: "Missing required fields" }, origin);
   }
 
   try {
@@ -35,11 +36,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       })
       .promise();
 
-    return createResponse(200, { message: "User updated" });
+    return createResponse(200, { message: "User updated" }, origin);
   } catch (err) {
-    return createResponse(500, {
-      message: "Failed to update user",
-      error: (err as any)?.message,
-    });
+    return createResponse(
+      500,
+      {
+        message: "Failed to update user",
+        error: (err as any)?.message,
+      },
+      origin
+    );
   }
 };
