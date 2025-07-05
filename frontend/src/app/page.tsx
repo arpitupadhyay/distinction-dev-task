@@ -1,16 +1,21 @@
 import UserList from "@/components/UserList";
+import { userApi } from "@/lib/api";
 import { User } from "@/types/user";
 
 export default async function Page() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-    cache: "no-store",
-  });
-  const users: User[] = await res.json();
+  let users: User[] = [];
+  
+  try {
+    users = await userApi.getAll();
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+  }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">User List</h1>
-      <UserList initialUsers={Array.isArray(users) ? users : [users]} />
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <UserList initialUsers={users} />
+      </div>
     </div>
   );
 }

@@ -9,22 +9,28 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   const id = event.pathParameters?.id;
   const data = JSON.parse(event.body || "{}");
 
-  if (!id || !data.name || !data.email) {
+  if (!id || !data.name || !data.email || !data.city || !data.country) {
     return createResponse(400, { message: "Missing required fields" });
   }
 
   try {
-    await db
+    const result = await db
       .update({
         TableName: tableName,
         Key: { id },
-        UpdateExpression: "set #name = :name, email = :email",
+        UpdateExpression:
+          "set #name = :name, #email = :email, #city = :city, #country = :country",
         ExpressionAttributeNames: {
           "#name": "name",
+          "#email": "email",
+          "#city": "city",
+          "#country": "country",
         },
         ExpressionAttributeValues: {
           ":name": data.name,
           ":email": data.email,
+          ":city": data.city,
+          ":country": data.country,
         },
       })
       .promise();
