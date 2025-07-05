@@ -4,6 +4,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambdaNodejs from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as path from "path";
 
 export class ArchitectureStack extends cdk.Stack {
@@ -19,6 +20,14 @@ export class ArchitectureStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const commonLayer = new lambda.LayerVersion(this, "CommonLayer", {
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../../layers/common/dist")
+      ),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
+      description: "Shared utilities layer",
+    });
+
     const createLambda = (name: string) =>
       new lambdaNodejs.NodejsFunction(this, `${name}Fn`, {
         entry: path.join(__dirname, `../../lambdas/${name}.ts`),
@@ -29,6 +38,8 @@ export class ArchitectureStack extends cdk.Stack {
         environment: {
           TABLE_NAME: usersTable.tableName,
         },
+        layers: [commonLayer],
+        logRetention: logs.RetentionDays.ONE_DAY,
         description: `${name} Lambda`,
       });
 
@@ -48,46 +59,16 @@ export class ArchitectureStack extends cdk.Stack {
 
     const api = new apigateway.RestApi(this, "UsersApi", {
       restApiName: "Users Service",
+      defaultCorsPreflightOptions: {
+        allowOrigins: ["http://localhost:3000"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowHeaders: ["*"],
+      },
     });
-
-    const addCorsOptions = (resource: apigateway.IResource) => {
-      resource.addMethod(
-        "OPTIONS",
-        new apigateway.MockIntegration({
-          integrationResponses: [
-            {
-              statusCode: "200",
-              responseParameters: {
-                "method.response.header.Access-Control-Allow-Headers": "'*'",
-                "method.response.header.Access-Control-Allow-Origin":
-                  "'http://localhost:3000'",
-                "method.response.header.Access-Control-Allow-Methods":
-                  "'GET,POST,PUT,DELETE,OPTIONS'",
-              },
-            },
-          ],
-          passthroughBehavior: apigateway.PassthroughBehavior.NEVER,
-          requestTemplates: { "application/json": '{"statusCode": 200}' },
-        }),
-        {
-          methodResponses: [
-            {
-              statusCode: "200",
-              responseParameters: {
-                "method.response.header.Access-Control-Allow-Headers": true,
-                "method.response.header.Access-Control-Allow-Origin": true,
-                "method.response.header.Access-Control-Allow-Methods": true,
-              },
-            },
-          ],
-        }
-      );
-    };
 
     const users = api.root.addResource("users");
     users.addMethod("POST", new apigateway.LambdaIntegration(createUserFn));
     users.addMethod("GET", new apigateway.LambdaIntegration(getAllUsersFn));
-    addCorsOptions(users);
 
     const userById = users.addResource("{id}");
     userById.addMethod("GET", new apigateway.LambdaIntegration(getUserFn));
@@ -96,7 +77,6 @@ export class ArchitectureStack extends cdk.Stack {
       "DELETE",
       new apigateway.LambdaIntegration(deleteUserFn)
     );
-    addCorsOptions(userById);
 
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.url,

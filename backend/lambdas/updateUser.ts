@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
 import { DynamoDB } from "aws-sdk";
-import { createResponse } from "./utils/response"; // adjust path as needed
+import { createResponse } from "../layers/common/nodejs/utils/response";
 
 const db = new DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME!;
