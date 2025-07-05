@@ -1,0 +1,13 @@
+# Node
+node_modules/
+dist/
+.env
+
+# CDK
+cdk.out/
+
+# IDEs
+.vscode/
+.DS_Store
+
+.next
