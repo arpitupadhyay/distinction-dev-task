@@ -15,7 +15,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 
   try {
-    const result = await db
+    await db
       .update({
         TableName: tableName,
         Key: { id },
