@@ -59,6 +59,7 @@ The frontend is built using Next.js (App Router) and deployed via Vercel. It con
 
 - Frontend (Vercel): [https://distinction-dev-task.vercel.app/](https://distinction-dev-task.vercel.app/)
 - API Gateway Base URL: `https://<api-id>.execute-api.<region>.amazonaws.com/prod/users`
+- See the network call in the live link to check the deployed API gateway URL.
 
 ## Folder Structure Overview
 
